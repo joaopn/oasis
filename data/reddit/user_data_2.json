@@ -1,0 +1,22 @@
+[
+    {
+        "username": "user1",
+        "realname": "User One",
+        "bio": "I'm interested in technology and science",
+        "persona": "A tech enthusiast who enjoys discussing new innovations",
+        "mbti": "INTJ",
+        "gender": "male",
+        "age": "25-34",
+        "country": "US"
+    },
+    {
+        "username": "user2",
+        "realname": "User Two",
+        "bio": "Love reading and discussing ideas",
+        "persona": "An avid reader who enjoys intellectual discussions",
+        "mbti": "INFJ",
+        "gender": "female",
+        "age": "18-24",
+        "country": "UK"
+    }
+]

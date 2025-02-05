@@ -1,0 +1,19 @@
+---
+data:
+  user_path: ./data/reddit/user_data_2.json
+  pair_path: ./data/reddit/counterfactual_36.json
+  db_path: ./simple_reddit.db
+simulation:
+  recsys_type: reddit
+  activate_prob: 0.2
+  clock_factor: 10
+  num_timesteps: 1000
+  max_rec_post_len: 50
+  round_post_num: 2
+  show_score: true
+  refresh_rec_post_count: 5
+  action_space_file_path: ./scripts/reddit_simple/action_space_prompt.txt
+inference:
+  model_type: llama-3
+  is_openai_model: false
+  server_url: http://127.0.0.1:8080/v1

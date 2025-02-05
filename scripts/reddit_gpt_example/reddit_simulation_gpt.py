@@ -1,12 +1,12 @@
 # =========== Copyright 2023 @ CAMEL-AI.org. All Rights Reserved. ===========
-# Licensed under the Apache License, Version 2.0 (the “License”);
+# Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an “AS IS” BASIS,
+# distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -118,15 +118,24 @@ async def running(
 
     twitter_task = asyncio.create_task(infra.running())
 
+    is_openai_model = inference_configs.get("is_openai_model", False)
     if inference_configs["model_type"][:3] == "gpt":
         is_openai_model = True
     if not controllable_user:
         raise ValueError("Uncontrollable user is not supported")
     else:
+        social_log.info("Generating agents...")
         agent_graph, id_mapping = await gen_control_agents_with_data(
             twitter_channel,
             2,
         )
+        social_log.info("Agents generated successfully")
+        social_log.info(f"Loading posts from {pair_path}")
+        with open(pair_path, "r") as f:
+            posts = json.load(f)
+        social_log.info(f"Loaded {len(posts)} posts")
+
+        social_log.info("Generating Reddit agents...")
         agent_graph = await generate_reddit_agents(
             user_path,
             twitter_channel,
@@ -139,45 +148,62 @@ async def running(
             inference_configs["model_type"],
             is_openai_model,
         )
-    with open(pair_path, "r") as f:
-        pairs = json.load(f)
+        social_log.info("Reddit agents generated successfully")
 
     for timestep in range(num_timesteps):
         os.environ["TIME_STAMP"] = str(timestep + 1)
         if timestep == 0:
             start_time_0 = datetime.now()
         print(Back.GREEN + f"timestep:{timestep}" + Back.RESET)
-        social_log.info(f"timestep:{timestep + 1}.")
-
+        social_log.info(f"Starting timestep {timestep}")
+        
+        social_log.info("Getting agents...")
         post_agent = agent_graph.get_agent(0)
         rate_agent = agent_graph.get_agent(1)
-
-        async def export_data(i):
+        
+        # Log using the correct attributes
+        social_log.info(f"Post agent name: {post_agent.user_info.name}")
+        social_log.info(f"Post agent type: {post_agent.user_info.recsys_type}")
+        social_log.info(f"Post agent controllable: {post_agent.user_info.is_controllable}")
+        
+        # Log post creation attempts
+        social_log.info(f"Loading posts from {pair_path}")
+        social_log.info(f"Posts content: {posts[:round_post_num]}")  # Log first batch of posts
+        
+        post_tasks = []
+        for i in range(round_post_num):
             rs_rc_index = i + timestep * round_post_num
-            if rs_rc_index >= len(pairs):
-                return
-            else:
-                content = pairs[rs_rc_index]["RC_1"]["body"]
-                response = await post_agent.perform_action_by_data(
-                    "create_post", content=content)
-                post_id = response["post_id"]
+            if rs_rc_index >= len(posts):
+                social_log.info(f"Skipping post {i} (index out of range)")
+                continue
+            content = posts[rs_rc_index]["RC_1"]["body"]
+            social_log.info(f"Creating post {i}: '{content[:100]}...'")  # Log truncated content
+            try:
+                task = post_agent.perform_action_by_data("create_post", content=content)
+                post_tasks.append(task)
+                social_log.info(f"Post {i} task created successfully")
+            except Exception as e:
+                social_log.error(f"Error creating post {i} task: {str(e)}")
+                raise
+        
+        if post_tasks:
+            social_log.info(f"Waiting for {len(post_tasks)} post creation tasks...")
+            try:
+                await asyncio.gather(*post_tasks)
+                social_log.info("All posts created successfully")
+            except Exception as e:
+                social_log.error(f"Error during post creation: {str(e)}")
+                raise
+        
+        # Log recommendation table updates
+        social_log.info("Updating recommendation table...")
+        try:
+            await infra.update_rec_table()
+            social_log.info("Recommendation table updated successfully")
+        except Exception as e:
+            social_log.error(f"Error updating recommendation table: {str(e)}")
+            raise
 
-                if init_post_score == 1:
-                    await rate_agent.perform_action_by_data(
-                        "like_post", post_id)
-                elif init_post_score == -1:
-                    await rate_agent.perform_action_by_data(
-                        "dislike_post", post_id)
-                elif init_post_score == 0:
-                    pass
-                else:
-                    raise ValueError(f"Unsupported value of init_post_score: "
-                                     f"{init_post_score}")
-
-        tasks = [export_data(i) for i in range(round_post_num)]
-        await asyncio.gather(*tasks)
-        await infra.update_rec_table()
-        social_log.info("update rec table.")
         tasks = []
         for _, agent in agent_graph.get_agents():
             if agent.user_info.is_controllable is False:
