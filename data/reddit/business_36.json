@@ -1,0 +1,32 @@
+[
+  {
+    "RS": {
+      "title": "None",
+      "selftext": "Tesla's recent earnings report shows significant growth in their electric vehicle deliveries, with a 50% year-over-year increase. This success comes despite growing competition in the EV market and global supply chain challenges."
+    },
+    "RC_1": {
+      "body": "Tesla shows strong growth in EV deliveries",
+      "group": "up"
+    }
+  },
+  {
+    "RS": {
+      "title": "None",
+      "selftext": "Amazon Web Services (AWS) continues to dominate the cloud computing market, maintaining a 32% market share. Their success is driven by continuous innovation in AI services and edge computing solutions."
+    },
+    "RC_1": {
+      "body": "AWS maintains cloud market leadership",
+      "group": "control"
+    }
+  },
+  {
+    "RS": {
+      "title": "None",
+      "selftext": "The Federal Reserve's latest meeting suggests a potential shift in monetary policy, with discussions about gradually reducing interest rates in the coming months. This could have significant implications for businesses and the broader economy."
+    },
+    "RC_1": {
+      "body": "Fed considers interest rate reductions",
+      "group": "up"
+    }
+  }
+] 
