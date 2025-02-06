@@ -1,9 +1,8 @@
 ---
 data:
-  user_path: /ibex/user/yangz0h/experiment_dataset/user_data/user_data_3600.json
-  pair_path: /ibex/user/yangz0h/experiment_dataset/agent_3600/business.json
-  db_path: ./experiments/reddit_simulation_align_with_human/business_3600.db
-  exp_info_filename: ./experiments/reddit_simulation_align_with_human/business_3600.json
+  user_path: ./data/reddit/user_data_36.json  # Path to the user profile file
+  pair_path: ./data/reddit/counterfactual_36.json  # Path to the initial post file
+  db_path: ./counterfactual_36_gpt.db  # Path for saving the social media database after the experiment
 simulation:
   recsys_type: reddit
   controllable_user: true
