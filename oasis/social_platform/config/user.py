@@ -105,6 +105,8 @@ Ensure that your output can be directly converted into **JSON format**, and avoi
     def to_reddit_system_message(self, action_space_prompt: str = None) -> str:
         name_string = ""
         description_string = ""
+        description = ""    
+        
         if self.name is not None:
             name_string = f"Your name is {self.name}."
         if self.profile is None:
@@ -122,6 +124,8 @@ Ensure that your output can be directly converted into **JSON format**, and avoi
                     f"{self.profile['other_info']['age']} years old, with an MBTI "
                     f"personality type of {self.profile['other_info']['mbti']} from "
                     f"{self.profile['other_info']['country']}.")
+        else:
+            description = "You are a Reddit user."
         if not action_space_prompt:
             action_space_prompt = """
 # OBJECTIVE
