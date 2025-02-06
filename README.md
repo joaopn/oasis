@@ -94,6 +94,82 @@ pip install --upgrade pip setuptools
 pip install -e .  # This will install dependencies as specified in pyproject.toml
 ```
 
+## 🚀 Running Large-Scale Simulations with vLLM
+
+### Data Generation
+We have created several datasets with different scales for testing:
+- 36 agents (base dataset)
+- 10,000 agents dataset
+- 100,000 agents dataset
+- 1 million agents dataset
+
+The datasets are located in the `data/reddit` directory with corresponding JSON files:
+- `user_data_36.json`: Base dataset with 36 agents
+- `user_data_10k_vllm.json`: 10,000 agents dataset
+- `user_data_100k_vllm.json`: 100,000 agents dataset
+- `user_data_1M_vllm.json`: 1 million agents dataset
+
+### Generating Custom User Datasets
+You can generate your own user datasets using the provided generation scripts in the `generator/reddit` directory:
+
+```bash
+# For generating users with OpenAI models (requires OPENAI_API_KEY)
+python generator/reddit/user_generate.py --num_users 100
+
+# For generating users with vLLM (requires running vLLM servers)
+python generator/reddit/user_generate_vllm.py --num_users 100 --max_workers 4
+```
+
+The scripts will generate users with realistic distributions of:
+- Gender (based on Reddit demographics)
+- Age groups (18-29, 30-49, 50-64, 65-100)
+- MBTI personality types
+- Countries (US, UK, Canada, Australia, Germany, Other)
+- Professions
+- Interested topics (generated based on user attributes)
+
+To create larger datasets from existing ones, you can use Python's JSON manipulation:
+
+```bash
+# Create a 100k dataset from 1M dataset
+python3 -c "import json; f=open('data/reddit/user_data_1M_vllm.json', 'r'); data=json.load(f); f.close(); subset=data[:100000]; f=open('data/reddit/user_data_100k_vllm.json', 'w'); json.dump(subset, f, indent=2); f.close(); print(f'Created 100k file with {len(subset):,} entries')"
+
+# Verify the dataset
+python3 -c "import json; f=open('data/reddit/user_data_100k_vllm.json'); data=json.load(f); print(f'Valid JSON with {len(data):,} entries')"
+```
+
+### vLLM Configuration
+The vLLM configuration files are located in `scripts/reddit_vllm_example/`:
+- `vllm_config.yaml`: Base configuration for 36 agents
+- `vllm_config10k.yaml`: Configuration for 10,000 agents
+- `vllm_config1M.yaml`: Configuration for 1 million agents
+
+Key configuration parameters:
+```yaml
+simulation:
+  activate_prob: 0.1
+  clock_factor: 10
+  num_timesteps: 10
+  max_rec_post_len: 50
+  round_post_num: 20
+```
+
+### Running Simulations
+The simulation can be run with different scales using the appropriate configuration files:
+
+```bash
+# For 36 agents
+python scripts/reddit_simulation_align_with_human/reddit_simulation_align_with_human.py --config_path scripts/reddit_vllm_example/vllm_config.yaml
+
+# For 10k agents
+python scripts/reddit_simulation_align_with_human/reddit_simulation_align_with_human.py --config_path scripts/reddit_vllm_example/vllm_config10k.yaml
+
+# For 1M agents
+python scripts/reddit_simulation_align_with_human/reddit_simulation_align_with_human.py --config_path scripts/reddit_vllm_example/vllm_config1M.yaml
+```
+
+Note: Running simulations with larger numbers of agents (100k, 1M) requires significant computational resources and may take considerable time to complete.
+
 ## 🏃Quickstart (For OpenAI Models)
 
 ### Step 1: Set Up Environment Variables
@@ -279,7 +355,7 @@ python scripts/reddit_simulation_counterfactual/reddit_simulation_counterfactual
 # For Twitter(X)
 
 # Information spreading
-# one case in align_with_real_world, The ‘user_char’ field in the dataset we have open-sourced has been replaced with  ‘description’ to ensure privacy protection.
+# one case in align_with_real_world, The 'user_char' field in the dataset we have open-sourced has been replaced with  'description' to ensure privacy protection.
 python scripts/twitter_simulation/twitter_simulation_large.py --config_path scripts/twitter_simulation/align_with_real_world/yaml_200/sub1/False_Business_0.yaml
 
 # Group Polarization
