@@ -3,6 +3,7 @@ data:
   user_path: ./data/reddit/user_data_1M_vllm.json  # Path to the user profile file
   pair_path: ./data/reddit/counterfactual_36.json  # Path to the initial post file
   db_path: ./counterfactual_36_gpt.db  # Path for saving the social media database after the experiment
+  exp_info_filename: ./experiments/reddit_vllm/vllm_1M.json
 simulation:
   recsys_type: reddit
   controllable_user: true
